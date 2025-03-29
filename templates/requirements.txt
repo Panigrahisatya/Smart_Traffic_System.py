@@ -1,0 +1,8 @@
+Flask
+Flask-Mail
+python-dotenv
+werkzeug
+itsdangerous
+sqlite3
+speechrecognition
+gtts

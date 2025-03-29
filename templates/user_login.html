@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Login | Smart Traffic System</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+            overflow: hidden; /* Prevent scrollbars from background effects */
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80'); /* Realistic traffic background */
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.65) blur(5px); /* Subtle blur for realism */
+            z-index: -2;
+            animation: subtleMove 30s infinite alternate; /* Gentle movement */
+        }
+        
+        @keyframes subtleMove {
+            0% { transform: translateX(0) scale(1); }
+            50% { transform: translateX(-20px) scale(1.02); }
+            100% { transform: translateX(20px) scale(1); }
+        }
+        
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.7), rgba(34, 139, 34, 0.5)); /* Traffic light-inspired overlay */
+            z-index: -1;
+        }
+        
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95); /* Slightly transparent for glass effect */
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            max-width: 420px;
+            width: 90%;
+            backdrop-filter: blur(10px); /* Glassmorphism effect */
+            border: 1px solid rgba(0, 123, 255, 0.2); /* Subtle border */
+            position: relative;
+            z-index: 1;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 25px;
+            color: #007bff;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.15em;
+            color: #444;
+            font-weight: 500;
+        }
+        
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+            background: rgba(245, 245, 245, 0.9);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+            outline: none;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #007bff, #00c4ff); /* Gradient button */
+            color: white;
+            border: none;
+            text-decoration: none;
+            font-size: 1.15em;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+            width: 100%;
+        }
+        
+        .button:hover {
+            background: linear-gradient(45deg, #0056b3, #0099cc);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0, 123, 255, 0.5);
+        }
+        
+        .error-message {
+            color: #e53935;
+            margin-bottom: 20px;
+            font-size: 1em;
+            background: rgba(229, 57, 53, 0.1);
+            padding: 8px;
+            border-radius: 5px;
+        }
+        
+        .success-message {
+            color: #43a047;
+            margin-bottom: 20px;
+            font-size: 1em;
+            background: rgba(67, 160, 71, 0.1);
+            padding: 8px;
+            border-radius: 5px;
+        }
+        
+        .links {
+            margin-top: 35px;
+            font-size: 1.05em;
+        }
+        
+        .links a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 12px;
+            transition: color 0.3s ease;
+        }
+        
+        .links a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px;
+                max-width: 90%;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .button {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚦 User Login</h1>
+        
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+        
+        {% if success %}
+        <div class="success-message">{{ success }}</div>
+        {% endif %}
+        
+        <form action="{{ url_for('user_login_post') }}" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="button">Login</button>
+        </form>
+        
+        <div class="links">
+            <a href="{{ url_for('user_forgot_password') }}">Forgot Password?</a>
+            <a href="{{ url_for('user_register') }}">Register</a>
+            <a href="{{ url_for('index') }}">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

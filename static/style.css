@@ -1,0 +1,61 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+input, button {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    border: none;
+}
+
+table {
+    width: 90%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+/* ✅ Chatbox Styling */
+#chatbox {
+    margin-top: 20px;
+}
+
+#chatbox input {
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#chatbox button {
+    padding: 10px;
+    font-size: 18px;
+    margin-left: 5px;
+    cursor: pointer;
+    background-color: #ffb703;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+#chatbox button:hover {
+    background-color: #faa307;
+}
+
+/* ✅ Chat History Styling */
+#chat-history {
+    font-size: 15px;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}

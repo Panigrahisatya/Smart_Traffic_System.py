@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome | Smart Traffic System</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1465447142348-e9952c393450?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.7) blur(3px);
+            z-index: -2;
+        }
+        
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.7) 0%, rgba(0, 0, 0, 0.7) 100%);
+            z-index: -1;
+        }
+        
+        .background-slideshow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+        
+        .background-slideshow div {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            animation: slideshow 24s linear infinite;
+        }
+        
+        .background-slideshow div:nth-child(1) {
+            background-image: url('https://images.unsplash.com/photo-1465447142348-e9952c393450?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            animation-delay: 0s;
+        }
+        
+        .background-slideshow div:nth-child(2) {
+            background-image: url('https://images.unsplash.com/photo-1494522855154-9297ac14b55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            animation-delay: 6s;
+        }
+        
+        .background-slideshow div:nth-child(3) {
+            background-image: url('https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            animation-delay: 12s;
+        }
+        
+        .background-slideshow div:nth-child(4) {
+            background-image: url('https://images.unsplash.com/photo-1581299894341-367e6517569c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            animation-delay: 18s;
+        }
+        
+        @keyframes slideshow {
+            0% { opacity: 0; transform: scale(1.05); }
+            4% { opacity: 1; }
+            25% { opacity: 1; }
+            29% { opacity: 0; transform: scale(1); }
+            100% { opacity: 0; }
+        }
+        
+        .navbar {
+            position: move;
+            top: 0;
+            right: 0;
+            background-color: none;
+            backdrop-filter: blur(10px);
+            padding: 8px 15px;
+            border-radius: 0 0 0 12px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            transition: all 0.3s ease;
+            max-width: 300px;
+        }
+        
+        .navbar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #143961;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        
+        .navbar-content {
+            display: flex;
+            flex-direction: row;
+            align-items: left;
+            gap: 10px;
+        }
+        
+        .navbar-title-area {
+            flex: 1;
+        }
+        
+        .navbar-title {
+            font-size: 2em;
+            font-weight: bold;
+            color: #1c6375;
+            white-space: nowrap;
+        }
+        
+        .navbar-links {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .login-button {
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.85em;
+            transition: background-color 0.3s;
+        }
+        
+        .login-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .welcome-section {
+            text-align: center;
+            color: rgb(180, 231, 12);
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 20px 0;
+            z-index: 10;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .info-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+            z-index: 10;
+        }
+        
+        .info-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            flex: 1 1 300px;
+            max-width: 350px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+           
+        }
+        
+        .info-card::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #007bff, #00c6ff);
+            transform: scaleX(0);
+            transform-origin: bottom left;
+            transition: transform 0.5s ease;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .info-card:hover::after {
+            transform: scaleX(1);
+        }
+        
+        .info-card h2 {
+            font-size: 1.5em;
+            color: #007bff;
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .info-card h2 .icon {
+            margin-right: 10px;
+            font-size: 1.3em;
+        }
+        
+        .info-card p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        .info-card .stat {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #007bff;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .info-card ul {
+            padding-left: 20px;
+            margin-bottom: 0;
+        }
+        
+        .info-card ul li {
+            margin-bottom: 8px;
+            color: #444;
+        }
+        
+        .traffic-status {
+            display: flex;
+            justify-content: space-between;
+            margin : 15px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .status-indicator .dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-bottom: 5px;
+        }
+        
+        .status-indicator .green {
+            background-color: #28a745;
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+        }
+        
+        .status-indicator .yellow {
+            background-color: #ffc107;
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+        }
+        
+        .status-indicator .red {
+            background-color: #dc3545;
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+        }
+        
+        .status-indicator .label {
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        .traffic-rules-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 25px;
+            margin: 0 20px 30px;
+            max-width: 1100px;
+            width: calc(100% - 40px);
+            z-index: 10;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .traffic-rules-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23007bff' opacity='0.1'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E") no-repeat;
+            opacity: 0.1;
+        }
+        
+        .traffic-rules-title {
+            font-size: 1.8em;
+            color: #007bff;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid rgba(0, 123, 255, 0.2);
+            padding-bottom: 10px;
+        }
+        
+        .rules-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        .rule-item {
+            flex: 1 1 200px;
+            padding: 15px;
+            background-color: rgba(0, 123, 255, 0.05);
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .rule-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .rule-title {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 8px;
+        }
+        
+        .rule-title .rule-icon {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+        
+        .rule-description {
+            color: #555;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: auto;
+            padding: 20px;
+            color: white;
+            font-size: 0.9em;
+            width: 100%;
+            z-index: 10;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar {
+                width: auto;
+                right: 0;
+                border-radius: 0 0 0 12px;
+            }
+            
+            .navbar-toggle {
+                display: block;
+            }
+            
+            .navbar-content {
+                flex-direction: column;
+                align-items: flex-start;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease;
+            }
+            
+            .navbar.active .navbar-content {
+                max-height: 300px;
+            }
+            
+            .info-card, .rule-item {
+                flex: 1 1 100%;
+            }
+            
+            .welcome-section {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-slideshow">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+    
+    <nav class="navbar" id="navbar">
+        <button class="navbar-toggle" id="navbarToggle">≡</button>
+        <div class="navbar-content">
+            <div class="navbar-title-area">
+                <div class="navbar-title">🚦</div>
+            </div>
+            <div class="navbar-links">
+                <a href="{{ url_for('index') }}" class="login-button">🏠 Home</a>
+                <a href="{{ url_for('about') }}" class="login-button">ℹ️ About</a>
+                <a href="{{ url_for('contact') }}" class="login-button">📞 Contact</a>
+                <a href="{{ url_for('user_login') }}" class="login-button">👤 User</a>
+                <a href="{{ url_for('admin_login') }}" class="login-button">🔐 Admin</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="welcome-section">
+        Welcome To Smart Traffic System
+    </div>
+    
+    <div class="info-container">
+        <div class="info-card">
+            <h2><span class="icon">📊</span> Traffic Statistics</h2>
+            <p>Our smart system monitors city-wide traffic patterns to optimize flow and reduce congestion.</p>
+            <div class="stat">42%</div>
+            <p>Average reduction in commute times after implementation</p>
+            <ul>
+                <li>Real-time traffic monitoring across 128 intersections</li>
+                <li>AI-powered traffic signal optimization</li>
+                <li>Predictive congestion management</li>
+            </ul>
+        </div>
+        
+        <div class="info-card">
+            <h2><span class="icon">🚦</span> Current Traffic Status</h2>
+            <p>Live traffic conditions across major city routes:</p>
+            <div class="traffic-status">
+                <div class="status-indicator">
+                    <div class="dot green"></div>
+                    <div class="label">Downtown</div>
+                </div>
+                <div class="status-indicator">
+                    <div class="dot yellow"></div>
+                    <div class="label">Highways</div>
+                </div>
+                <div class="status-indicator">
+                    <div class="dot red"></div>
+                    <div class="label">North Area</div>
+                </div>
+            </div>
+            <p>Last updated: <span id="updateTime">Today, 2:35 PM</span></p>
+            <p>Our system automatically adjusts traffic signals based on current conditions to minimize wait times.</p>
+        </div>
+        
+        <div class="info-card">
+            <h2><span class="icon">🌿</span> Environmental Impact</h2>
+            <div class="stat">31%</div>
+            <p>Reduction in carbon emissions from reduced idle times</p>
+            <ul>
+                <li>Decreased fuel consumption by optimizing traffic flow</li>
+                <li>Reduced vehicle idle time at intersections</li>
+                <li>Priority lanes for eco-friendly transportation</li>
+                <li>Integrated with public transportation for better coordination</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="traffic-rules-card">
+        <h2 class="traffic-rules-title">🚗 Essential Traffic Rules for Safe City Driving 🚗</h2>
+        <div class="rules-container">
+            <div class="rule-item">
+                <div class="rule-title">
+                    <span class="rule-icon">🛑</span>Traffic Signals
+                </div>
+                <div class="rule-description">
+                    Always obey traffic lights and signals. At a red light, stop completely before the white line and wait until green. Yellow means prepare to stop, not accelerate.
+                </div>
+            </div>
+            
+            <div class="rule-item">
+                <div class="rule-title">
+                    <span class="rule-icon">⚠️</span>Speed Limits
+                </div>
+                <div class="rule-description">
+                    Adhere to posted speed limits at all times. In residential areas, maintain 25 mph unless otherwise posted. School zones require reduced speeds during operational hours.
+                </div>
+            </div>
+            
+            <div class="rule-item">
+                <div class="rule-title">
+                    <span class="rule-icon">🚸</span>Pedestrian Priority
+                </div>
+                <div class="rule-description">
+                    Always yield to pedestrians at crosswalks, whether marked or unmarked. When a pedestrian has entered a crosswalk, vehicles must stop and remain stopped until they've crossed.
+                </div>
+            </div>
+            
+            <div class="rule-item">
+                <div class="rule-title">
+                    <span class="rule-icon">📱</span>Distracted Driving
+                </div>
+                <div class="rule-description">
+                    Using handheld mobile devices while driving is prohibited. Use hands-free systems for calls and never text while driving. Pull over safely if you need to use your phone.
+                </div>
+            </div>
+            
+            <div class="rule-item">
+                <div class="rule-title">
+                    <span class="rule-icon">🚑</span>Emergency Vehicles
+                </div>
+                <div class="rule-description">
+                    When emergency vehicles with flashing lights and sirens approach, pull to the right edge of the road and stop until they've passed. Never block intersections.
+                </div>
+            </div>
+            
+            <div class="rule-item">
+                <div class="rule-title">
+                    <span class="rule-icon">🅿️</span>Parking Regulations
+                </div>
+                <div class="rule-description">
+                    Park only in designated areas. Do not park within 15 feet of a fire hydrant, in front of driveways, or on crosswalks. Always check for parking restrictions and time limits.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        © 2025 Smart Traffic System | Improving urban mobility with intelligent infrastructure
+    </div>
+    
+    <script>
+        document.getElementById('navbarToggle').addEventListener('click', function() {
+            document.getElementById('navbar').classList.toggle('active');
+        });
+        
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const formattedHours = hours % 12 || 12;
+            const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('updateTime').textContent = `Today, ${formattedHours}:${formattedMinutes} ${ampm}`;
+        }
+        
+        updateTime();
+        setInterval(updateTime, 60000);
+    </script>
+</body>
+</html>

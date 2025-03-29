@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Admin Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Existing styles remain unchanged */
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            background-color: none;
+            backdrop-filter: blur(10px);
+            padding: 8px 15px;
+            border-radius: 0 0 0 12px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            transition: all 0.3s ease;
+            max-width: 400px;
+        }
+        
+        .navbar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #007bff;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        
+        .navbar-content {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar-title-area {
+            flex: 1;
+        }
+        
+        .navbar-title {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+            white-space: nowrap;
+        }
+        
+        .navbar-links {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .login-button {
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.85em;
+            transition: background-color 0.3s;
+        }
+        
+        .login-button:hover {
+            background-color: #0056b3;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar {
+                width: auto;
+                right: 0;
+                border-radius: 0 0 0 12px;
+            }
+            
+            .navbar-toggle {
+                display: block;
+            }
+            
+            .navbar-content {
+                flex-direction: column;
+                align-items: flex-start;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease;
+            }
+            
+            .navbar.active .navbar-content {
+                max-height: 300px;
+            }
+        }
+
+        .login-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 350px;
+            margin-top: 60px;
+            z-index: 1;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 95%;
+            padding: 12px;
+            margin-top: 15px;
+            background-color: #007BFF;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .toggle-password {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .toggle-password input {
+            margin-right: 5px;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .register-link {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .register-link a {
+            color: #007BFF;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .register-link a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        /* New style for the forgot password link */
+        .forgot-password-link {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .forgot-password-link a {
+            color: #007BFF;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .forgot-password-link a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar" id="navbar">
+        <button class="navbar-toggle" id="navbarToggle">≡</button>
+        <div class="navbar-content">
+            <div class="navbar-title-area">
+                <div class="navbar-title">🚦</div>
+            </div>
+            <div class="navbar-links">
+                <a href="{{ url_for('index') }}" class="login-button">🏠 Home</a>
+                <a href="{{ url_for('about') }}" class="login-button">ℹ️ About</a>
+                <a href="{{ url_for('contact') }}" class="login-button">📞 Contact</a>
+                <a href="{{ url_for('user_login') }}" class="login-button">👤 User</a>
+                <a href="{{ url_for('admin_login') }}" class="login-button">🔐 Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="login-container">
+        <h2>🔐 Developer Admin Login</h2>
+
+        <!-- Error message handling -->
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="/admin/login">
+            <input type="text" name="username" placeholder="Username" required><br>
+            <input type="password" name="password" id="passwordInput" placeholder="Password" required><br>
+
+            <div class="toggle-password">
+                <input type="checkbox" onclick="togglePassword()"> Show Password
+            </div>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <!-- Registration link -->
+        <div class="register-link">
+            New admin? <a href="{{ url_for('admin_register') }}">Register here</a>
+        </div>
+
+        <!-- Added forgot password link -->
+        <div class="forgot-password-link">
+            Forgot your password? <a href="{{ url_for('admin_forgot_password') }}">Reset here</a>
+        </div>
+    </div>
+
+    <script>
+        // Toggle navigation bar on mobile
+        document.getElementById('navbarToggle').addEventListener('click', function() {
+            document.getElementById('navbar').classList.toggle('active');
+        });
+
+        // Toggle password visibility
+        function togglePassword() {
+            const pwd = document.getElementById("passwordInput");
+            pwd.type = pwd.type === "password" ? "text" : "password";
+        }
+    </script>
+</body>
+</html>

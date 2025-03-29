@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚦 Smart Traffic Assistant</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <script>
+        function loadTrafficData() {
+            fetch("/traffic_data")
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("traffic").innerHTML = `
+                        📍 Location: ${data.location} <br>
+                        🚗 Vehicle Count: ${data.vehicle_count} <br>
+                        🚶 Pedestrians: ${data.pedestrian_count} <br>
+                        🚦 Congestion Level: ${data.congestion_level} <br>
+                        🗺 <a href="${data.map_url}" target="_blank">View on Google Maps</a>
+                    `;
+                });
+        }
+
+        function sendChatbotQuery() {
+            let query = document.getElementById("chat-input").value;
+            if (!query.trim()) return;
+
+            const chatHistory = document.getElementById("chat-history");
+            const userMessage = `<div style="margin-bottom: 5px;"><strong>You:</strong> ${query}</div>`;
+            chatHistory.innerHTML += userMessage;
+
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("chat-input").value = "";
+
+            fetch("/chatbot", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const botMessage = `<div style="margin-bottom: 10px;"><strong>Bot:</strong> ${data.response}</div>`;
+                chatHistory.innerHTML += botMessage;
+                document.getElementById("loading").style.display = "none";
+
+                // Auto-scroll to latest message
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                // Text-to-speech
+                fetch("/text_to_speech", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: data.response })
+                });
+            });
+        }
+
+        function startVoiceInput() {
+            fetch("/voice_to_text", { method: "POST" })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("chat-input").value = data.transcript;
+                sendChatbotQuery();
+            })
+            .catch(error => {
+                alert("🎤 Voice recognition failed.");
+                console.error(error);
+            });
+        }
+
+        window.onload = loadTrafficData;
+    </script>
+</head>
+<body>
+
+    <h1 style="color: #e63946;">🚦 Smart Traffic System</h1>
+
+    <!-- ✅ Navigation Bar -->
+    <div style="margin-bottom: 20px; padding: 10px; background-color: #ffe066; border-radius: 5px;">
+        {% if session.admin %}
+            👨‍💼 Logged in as <strong>Admin</strong> |
+            <a href="/admin/dashboard"><button>Dashboard</button></a>
+            <a href="/admin/logout"><button>Logout</button></a>
+        {% elif session.user %}
+            👤 Logged in as <strong>User</strong> |
+            <a href="/user/dashboard"><button>Dashboard</button></a>
+            <a href="/user/logout"><button>Logout</button></a>
+        {% else %}
+            <a href="/admin"><button>👨‍💼 Admin Login</button></a>
+            <a href="/user"><button>👤 User Login</button></a>
+        {% endif %}
+    </div>
+
+    <h3 style="color: #1d3557;">📍 Real-time Traffic Status</h3>
+    <div id="traffic" style="background-color: #f1faee; padding: 15px; border: 1px solid #ccc; border-radius: 5px;">Loading...</div>
+    <button onclick="loadTrafficData()" style="background-color: #06d6a0; color: white;">🔄 Refresh Data</button>
+
+    <!-- ✅ Enhanced Chatbot Section -->
+    <h3 style="margin-top: 40px; color: #1d3557;">🗨 Chatbot Traffic Assistant</h3>
+    <p><strong>Type or speak:</strong> <em>“What's the traffic in Delhi?”</em></p>
+
+    <div id="chatbox" style="max-width: 600px; background-color: #fefae0; padding: 20px; border-radius: 10px; border: 1px solid #ccc;">
+        <div id="chat-history" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;"></div>
+
+        <div style="display: flex; align-items: center;">
+            <input type="text" id="chat-input" placeholder="Ask your question..." style="flex: 1; padding: 10px;">
+            <button onclick="sendChatbotQuery()" title="Send">📤</button>
+            <button onclick="startVoiceInput()" title="Speak">🎤</button>
+        </div>
+
+        <div id="loading" style="display: none; color: #888; margin-top: 10px;">⌛ Thinking...</div>
+    </div>
+
+</body>
+</html>

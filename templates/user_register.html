@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Registration | Smart Traffic System</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+            overflow: hidden; /* Prevent scrollbars from background effects */
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1483127070972-8eddbbef65e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80'); /* Traffic-themed background */
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.7) blur(4px); /* Subtle blur for realism */
+            z-index: -2;
+            animation: gentleShift 25s infinite alternate; /* Subtle movement */
+        }
+        
+        @keyframes gentleShift {
+            0% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-15px) scale(1.01); }
+            100% { transform: translateY(15px) scale(1); }
+        }
+        
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.7), rgba(34, 139, 34, 0.5)); /* Traffic light-inspired overlay */
+            z-index: -1;
+        }
+        
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95); /* Glassmorphism effect */
+            padding: 30px; /* Reduced from 45px */
+            border-radius: 20px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+            max-width: 360px; /* Reduced from 450px to 360px for medium size */
+            width: 90%;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 123, 255, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+        
+        h1 {
+            font-size: 2.2em; /* Reduced from 2.6em */
+            margin-bottom: 20px; /* Reduced from 25px */
+            color: #007bff;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px; /* Reduced from 25px */
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px; /* Reduced from 10px */
+            font-size: 1.1em; /* Slightly reduced from 1.15em */
+            color: #444;
+            font-weight: 500;
+        }
+        
+        input[type="text"], input[type="password"], input[type="email"] {
+            width: 100%;
+            padding: 12px; /* Reduced from 14px */
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95em; /* Reduced from 1em */
+            box-sizing: border-box;
+            background: rgba(245, 245, 245, 0.9);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+            outline: none;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 12px 25px; /* Reduced from 15px 30px */
+            background: linear-gradient(45deg, #007bff, #00c4ff); /* Gradient button */
+            color: white;
+            border: none;
+            text-decoration: none;
+            font-size: 1.1em; /* Slightly reduced from 1.15em */
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+            width: 100%;
+        }
+        
+        .button:hover {
+            background: linear-gradient(45deg, #0056b3, #0099cc);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0, 123, 255, 0.5);
+        }
+        
+        .error-message {
+            color: #e53935;
+            margin-bottom: 15px; /* Reduced from 20px */
+            font-size: 0.95em; /* Reduced from 1em */
+            background: rgba(229, 57, 53, 0.1);
+            padding: 6px; /* Reduced from 8px */
+            border-radius: 5px;
+        }
+        
+        .links {
+            margin-top: 25px; /* Reduced from 35px */
+            font-size: 1em; /* Reduced from 1.05em */
+        }
+        
+        .links a {
+            color: #007bff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .links a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 25px; /* Reduced from 30px */
+                max-width: 85%; /* Slightly adjusted for smaller screens */
+            }
+            
+            h1 {
+                font-size: 1.8em; /* Reduced from 2.2em */
+            }
+            
+            .button {
+                padding: 10px 20px; /* Reduced from 12px 25px */
+                font-size: 1em; /* Reduced from 1.1em */
+            }
+            
+            .form-group {
+                margin-bottom: 15px; /* Reduced from 20px */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚦 User Registration</h1>
+        
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+        
+        <form action="{{ url_for('user_register_post') }}" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            
+            <button type="submit" class="button">Register</button>
+        </form>
+        
+        <div class="links">
+            <a href="{{ url_for('user_login') }}">Already have an account? Login</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contact | Smart Traffic System</title>
+    <style>
+        /* Same CSS as home.html, omitting repetitive parts for brevity */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1465447142348-e9952c393450?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.7) blur(3px);
+            z-index: -2;
+        }
+        
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.7) 0%, rgba(0, 0, 0, 0.7) 100%);
+            z-index: -1;
+        }
+        
+        .navbar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            background-color: none;
+            backdrop-filter: blur(10px);
+            padding: 8px 15px;
+            border-radius: 0 0 0 12px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            transition: all 0.3s ease;
+            max-width: 400px;
+        }
+        
+        .navbar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #007bff;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        
+        .navbar-content {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar-title-area {
+            flex: 1;
+        }
+        
+        .navbar-title {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+            white-space: nowrap;
+        }
+        
+        .navbar-links {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .login-button {
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.85em;
+            transition: background-color 0.3s;
+        }
+        
+        .login-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .content-section {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 25px;
+            margin: 80px 20px 30px;
+            max-width: 800px;
+            width: calc(100% - 40px);
+            z-index: 10;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .content-section h1 {
+            font-size: 2em;
+            color: #007bff;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .content-section p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: auto;
+            padding: 20px;
+            color: white;
+            font-size: 0.9em;
+            width: 100%;
+            z-index: 10;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar {
+                width: auto;
+                right: 0;
+                border-radius: 0 0 0 12px;
+            }
+            
+            .navbar-toggle {
+                display: block;
+            }
+            
+            .navbar-content {
+                flex-direction: column;
+                align-items: flex-start;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease;
+            }
+            
+            .navbar.active .navbar-content {
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <button class="navbar-toggle" id="navbarToggle">≡</button>
+        <div class="navbar-content">
+            <div class="navbar-title-area">
+                <div class="navbar-title">🚦</div>
+            </div>
+            <div class="navbar-links">
+                <a href="{{ url_for('index') }}" class="login-button">🏠 Home</a>
+                <a href="{{ url_for('about') }}" class="login-button">ℹ️ About</a>
+                <a href="{{ url_for('contact') }}" class="login-button">📞 Contact</a>
+                <a href="{{ url_for('user_login') }}" class="login-button">👤 User</a>
+                <a href="{{ url_for('admin_login') }}" class="login-button">🔐 Admin</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="content-section">
+        <h1>Contact Us</h1>
+        <p>For inquiries, support, or feedback, please reach out to us:</p>
+        <p>Email: <a href="mailto:support@smarttrafficsystem.com">support@smarttrafficsystem.com</a></p>
+        <p>Phone no. for contact us: +91 9040497858</p>
+
+        <p>Cuttack RTO Phone Number: 0671-2507492 (Office)</p>
+        <p>Cuttack RTO Helpline Number: 0671-2508028</p>
+        <p>Cuttack RTO Email ID: rto_cuttack@yahoo.co.in</p>
+        <p>Cuttack RTO Office Address: Regional Transport Office, CuttackNear Collectorate, P.O. - Chandni Chowk, P.S. - Lalbag, Cuttack - 753002
+</p>
+
+        <p>Address: Smart Traffic Lane, Tech City, Cuttack</p>
+    </div>
+    
+    <div class="footer">
+        © 2025 Smart Traffic System | Improving urban mobility with intelligent infrastructure
+    </div>
+    
+    <script>
+        document.getElementById('navbarToggle').addEventListener('click', function() {
+            document.getElementById('navbar').classList.toggle('active');
+        });
+    </script>
+</body>
+</html>
