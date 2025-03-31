@@ -613,24 +613,35 @@
         }
 
         function sendMessage() {
-            const messageInput = document.getElementById('message-input');
-            const message = messageInput.value.trim();
-            if (message) {
-                addMessage(message, 'user-message');
-                messageInput.value = '';
-                fetch('/chatbot', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: message }),
-                })
-                .then(response => response.json())
-                .then(data => addMessage(data.response, 'bot-message'))
-                .catch(error => {
-                    console.error('Error fetching chatbot response:', error);
-                    addMessage('Sorry, something went wrong. Please try again.', 'bot-message');
+    const messageInput = document.getElementById('message-input');
+    const message = messageInput.value.trim();
+    if (message) {
+        addMessage(message, 'user-message');
+        messageInput.value = '';
+        fetch('/chatbot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: message }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Display the text response
+            addMessage(data.response, 'bot-message');
+            // Play the audio response if available
+            if (data.audio) {
+                const audio = new Audio(data.audio);
+                audio.play().catch(error => {
+                    console.error('Error playing audio:', error);
+                    addMessage('Could not play audio response.', 'bot-message');
                 });
             }
-        }
+        })
+        .catch(error => {
+            console.error('Error fetching chatbot response:', error);
+            addMessage('Sorry, something went wrong. Please try again.', 'bot-message');
+        });
+    }
+}
 
         function addMessage(text, className) {
             const chatMessages = document.getElementById('chat-messages');

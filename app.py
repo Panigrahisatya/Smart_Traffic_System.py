@@ -6,6 +6,7 @@ import random
 import smtplib
 from email.message import EmailMessage
 import datetime
+import time
 import os
 import openai
 import sqlite3
@@ -487,6 +488,7 @@ def admin_delete(id):
         cursor = conn.cursor()
         cursor.execute("DELETE FROM traffic WHERE id=?", (id,))
         conn.commit()
+    flash("✅ Traffic entry deleted successfully.", "success")
     return redirect("/admin/dashboard")
 
 
@@ -498,6 +500,7 @@ def admin_delete_accident(id):
         cursor = conn.cursor()
         cursor.execute("DELETE FROM accidents WHERE id=?", (id,))
         conn.commit()
+    flash("✅ Accident entry deleted successfully.", "success")
     return redirect("/admin/dashboard")
 
 
@@ -509,6 +512,7 @@ def admin_delete_alert(id):
         cursor = conn.cursor()
         cursor.execute("DELETE FROM alerts WHERE id=?", (id,))
         conn.commit()
+    flash("✅ Alert entry deleted successfully.", "success")
     return redirect("/admin/dashboard")
 
 
@@ -516,11 +520,24 @@ def admin_delete_alert(id):
 def admin_view_users():
     if not session.get("admin"):
         return redirect("/admin")
-    with sqlite3.connect("traffic.db") as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, username, email, role, created_at FROM users")
-        users = cursor.fetchall()
-    return render_template("admin_users.html", users=users)
+    try:
+        with sqlite3.connect("traffic.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, username, email, role, created_at FROM users")
+            users = cursor.fetchall()
+            logger.debug(f"Retrieved users: {users}")
+    except sqlite3.Error as e:
+        logger.error(f"Database error: {e}")
+        return "Database error occurred.", 500
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        return "An unexpected error occurred.", 500
+
+    try:
+        return render_template("admin_users.html", users=users)
+    except Exception as e:
+        logger.error(f"Template rendering error: {e}")
+        return "Error rendering template.", 500
 
 
 @app.route("/admin/logout")
@@ -1265,6 +1282,7 @@ def weather_data():
     location = request.args.get("location", "Downtown")
     return jsonify(get_fake_weather_data(location))
 
+
 @app.route('/chatbot', methods=['POST'])
 def chatbot():
     user_query = request.json.get("query", "").lower()
@@ -1324,10 +1342,17 @@ def chatbot():
 
     # Optional: Add audio response using gTTS
     if response_text:
-        tts = gTTS(text=response_text, lang='en')
-        audio_file = "static/response.mp3"
-        tts.save(audio_file)
-        audio_response = url_for('static', filename='response.mp3')
+        try:
+            tts = gTTS(text=response_text, lang='en')
+            # Generate a unique filename using a timestamp
+            timestamp = int(time.time())
+            audio_filename = f"response_{timestamp}.mp3"
+            audio_file = os.path.join("static", audio_filename)
+            tts.save(audio_file)
+            audio_response = url_for('static', filename=audio_filename)
+        except Exception as e:
+            logger.error(f"Error generating audio response: {e}")
+            audio_response = None
 
     return jsonify({"response": response_text, "audio": audio_response})
 
