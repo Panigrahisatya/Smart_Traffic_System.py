@@ -8,7 +8,6 @@ from email.message import EmailMessage
 import datetime
 import time
 import os
-import openai
 import sqlite3
 import speech_recognition as sr
 from gtts import gTTS
@@ -1156,7 +1155,6 @@ def realtime_traffic():
     return jsonify(response)
 
 # OTHER ROUTES
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 @app.route('/')
 def index():
