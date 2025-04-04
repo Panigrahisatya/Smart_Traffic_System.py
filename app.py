@@ -25,19 +25,8 @@ def init_db():
     conn = sqlite3.connect("traffic.db")
     cursor = conn.cursor()
     
-    # Create traffic table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS traffic (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            location TEXT,
-            vehicle_count INTEGER,
-            congestion_level TEXT,
-            pedestrian_count INTEGER,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+    cursor.execute("PRAGMA foreign_keys = ON;")
     
-    # Create users table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,29 +38,92 @@ def init_db():
         )
     ''')
     
-    # Create accidents table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS traffic (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            location TEXT,
+            vehicle_count INTEGER,
+            congestion_level TEXT,
+            pedestrian_count INTEGER,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+        )
+    ''')
+    
+    # Check and update traffic table
+    cursor.execute("PRAGMA table_info(traffic)")
+    columns = [col[1] for col in cursor.fetchall()]
+    if 'user_id' not in columns:
+        cursor.execute('ALTER TABLE traffic ADD COLUMN user_id INTEGER')
+        cursor.execute('UPDATE traffic SET user_id = NULL')
+        cursor.execute('PRAGMA foreign_keys=OFF')
+        cursor.execute('CREATE TABLE temp_traffic AS SELECT * FROM traffic')
+        cursor.execute('DROP TABLE traffic')
+        cursor.execute('''
+            CREATE TABLE traffic (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                location TEXT,
+                vehicle_count INTEGER,
+                congestion_level TEXT,
+                pedestrian_count INTEGER,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+            )
+        ''')
+        cursor.execute('INSERT INTO traffic (id, user_id, location, vehicle_count, congestion_level, pedestrian_count, timestamp) SELECT id, user_id, location, vehicle_count, congestion_level, pedestrian_count, timestamp FROM temp_traffic')
+        cursor.execute('DROP TABLE temp_traffic')
+        cursor.execute('PRAGMA foreign_keys=ON')
+    
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS accidents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            traffic_id INTEGER,
             location TEXT,
             description TEXT,
             severity TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (traffic_id) REFERENCES traffic(id) ON DELETE SET NULL
         )
     ''')
     
-    # Create alerts table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS alerts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            traffic_id INTEGER,
             type TEXT NOT NULL,
             location TEXT,
             description TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (traffic_id) REFERENCES traffic(id) ON DELETE SET NULL
         )
     ''')
     
-    # Add default admin and user
+    # Check and update alerts table
+    cursor.execute("PRAGMA table_info(alerts)")
+    columns = [col[1] for col in cursor.fetchall()]
+    if 'traffic_id' not in columns:
+        cursor.execute('ALTER TABLE alerts ADD COLUMN traffic_id INTEGER')
+        cursor.execute('UPDATE alerts SET traffic_id = NULL')  # Set to NULL since old traffic_ids are invalid
+        cursor.execute('PRAGMA foreign_keys=OFF')
+        cursor.execute('CREATE TABLE temp_alerts AS SELECT * FROM alerts')
+        cursor.execute('DROP TABLE alerts')
+        cursor.execute('''
+            CREATE TABLE alerts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                traffic_id INTEGER,
+                type TEXT NOT NULL,
+                location TEXT,
+                description TEXT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (traffic_id) REFERENCES traffic(id) ON DELETE SET NULL
+            )
+        ''')
+        cursor.execute('INSERT INTO alerts (id, traffic_id, type, location, description, timestamp) SELECT id, traffic_id, type, location, description, timestamp FROM temp_alerts')
+        cursor.execute('DROP TABLE temp_alerts')
+        cursor.execute('PRAGMA foreign_keys=ON')
+    
     cursor.execute("SELECT * FROM users WHERE username='admin'")
     if not cursor.fetchone():
         hashed_password = hashlib.sha256("admin123".encode()).hexdigest()
@@ -86,7 +138,7 @@ def init_db():
     
     conn.commit()
     conn.close()
-
+    
 # Call init_db at app startup
 init_db()
 
@@ -272,17 +324,33 @@ def get_fake_accident_data(location=None):
         "severity": random.choice(severities)
     }
 
-# Function to store accident data
-def store_accident_data(location, description, severity):
+# Modified store_traffic_data function
+def store_traffic_data(location, vehicle_count, congestion_level, pedestrian_count, user_id=None):
+    print("store_traffic_data called with:", location, vehicle_count, congestion_level, pedestrian_count, user_id)
     conn = sqlite3.connect("traffic.db")
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO accidents (location, description, severity) VALUES (?, ?, ?)", 
-                   (location, description, severity))
+    cursor.execute("""
+        INSERT INTO traffic (user_id, location, vehicle_count, congestion_level, pedestrian_count) 
+        VALUES (?, ?, ?, ?, ?)
+    """, (user_id, location, vehicle_count, congestion_level, pedestrian_count))
+    traffic_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return traffic_id
+
+# Modified store_accident_data function
+def store_accident_data(location, description, severity, traffic_id=None):
+    conn = sqlite3.connect("traffic.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO accidents (traffic_id, location, description, severity) 
+        VALUES (?, ?, ?, ?)
+    """, (traffic_id, location, description, severity))
     conn.commit()
     conn.close()
 
-# Function to generate and store various alerts
-def generate_and_store_alert(location=None):
+# Modified generate_and_store_alert function
+def generate_and_store_alert(location=None, traffic_id=None):
     alert_types = ["accident", "road_work", "weather"]
     type = random.choice(alert_types)
     
@@ -387,8 +455,10 @@ def generate_and_store_alert(location=None):
     
     conn = sqlite3.connect("traffic.db")
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO alerts (type, location, description) VALUES (?, ?, ?)", 
-                   (type, location, description))
+    cursor.execute("""
+        INSERT INTO alerts (traffic_id, type, location, description) 
+        VALUES (?, ?, ?, ?)
+    """, (traffic_id, type, location, description))
     conn.commit()
     conn.close()
     
@@ -698,6 +768,26 @@ def user_dashboard():
     if not session.get("user"):
         return redirect("/user/login")
     
+    # Get user_id
+    user_id = None
+    if "user_username" in session:
+        conn = sqlite3.connect("traffic.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM users WHERE username=?", (session["user_username"],))
+        result = cursor.fetchone()
+        user_id = result[0] if result else None
+        conn.close()
+    
+    # Store traffic data with user_id using keyword arguments
+    fake_data = get_fake_map_data()
+    traffic_id = store_traffic_data(
+        location=fake_data["location"],
+        vehicle_count=fake_data["vehicle_count"],
+        congestion_level=fake_data["congestion_level"],
+        pedestrian_count=fake_data["pedestrian_count"],
+        user_id=user_id
+    )
+    
     conn = sqlite3.connect("traffic.db")
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM traffic ORDER BY id DESC LIMIT 1")
@@ -724,7 +814,7 @@ def user_dashboard():
             alerts.append(f"🌧 Weather alert for {alert[1]}: {alert[2]}")
     
     if len(alerts) < 3 and latest_data:
-        new_alert = generate_and_store_alert(latest_data[1])
+        new_alert = generate_and_store_alert(latest_data[2], traffic_id)
         if new_alert["type"] == "accident":
             alerts.append(f"⚠ Accident in {new_alert['location']}: {new_alert['description']}")
         elif new_alert["type"] == "road_work":
@@ -739,15 +829,15 @@ def user_dashboard():
     traffic_subtitle = "Area experiencing delays"
     
     if latest_data:
-        current_traffic = latest_data[3]
-        traffic_subtitle = f"{latest_data[1]} area with {latest_data[2]} vehicles"
+        current_traffic = latest_data[4]  # Adjusted index due to user_id addition
+        traffic_subtitle = f"{latest_data[2]} area with {latest_data[3]} vehicles"
         traffic_data = {
-            "location": latest_data[1],
-            "vehicle_count": latest_data[2],
-            "congestion_level": latest_data[3],
-            "pedestrian_count": latest_data[4],
-            "timestamp": latest_data[5],
-            "map_url": f"https://www.google.com/maps/search/{latest_data[1]}"
+            "location": latest_data[2],
+            "vehicle_count": latest_data[3],
+            "congestion_level": latest_data[4],
+            "pedestrian_count": latest_data[5],
+            "timestamp": latest_data[6],
+            "map_url": f"https://www.google.com/maps/search/{latest_data[2]}"
         }
     
     dashboard_data = {
@@ -771,12 +861,27 @@ def dashboard_data():
     if not session.get("user"):
         return jsonify({"error": "Not logged in"}), 401
     
+    user_id = None
+    if "user_username" in session:
+        conn = sqlite3.connect("traffic.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM users WHERE username=?", (session["user_username"],))
+        result = cursor.fetchone()
+        user_id = result[0] if result else None
+        conn.close()
+    
     fake_data = get_fake_map_data()
-    store_traffic_data(fake_data["location"], fake_data["vehicle_count"], 
-                       fake_data["congestion_level"], fake_data["pedestrian_count"])
+    traffic_id = store_traffic_data(
+        location=fake_data["location"],
+        vehicle_count=fake_data["vehicle_count"],
+        congestion_level=fake_data["congestion_level"],
+        pedestrian_count=fake_data["pedestrian_count"],
+        user_id=user_id
+    )
+    # ... rest of the function remains the same
     
     if random.random() < 0.3:
-        generate_and_store_alert(fake_data["location"])
+        generate_and_store_alert(fake_data["location"], traffic_id)
     
     conn = sqlite3.connect("traffic.db")
     cursor = conn.cursor()
@@ -862,8 +967,22 @@ def user_refresh_traffic():
         return jsonify({"error": "Not logged in"}), 401
     
     fake_data = get_fake_map_data()
-    store_traffic_data(fake_data["location"], fake_data["vehicle_count"], 
-                       fake_data["congestion_level"], fake_data["pedestrian_count"])
+    user_id = None
+    if "user_username" in session:
+        conn = sqlite3.connect("traffic.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM users WHERE username=?", (session["user_username"],))
+        result = cursor.fetchone()
+        user_id = result[0] if result else None
+        conn.close()
+    
+    traffic_id = store_traffic_data(
+        location=fake_data["location"],
+        vehicle_count=fake_data["vehicle_count"],
+        congestion_level=fake_data["congestion_level"],
+        pedestrian_count=fake_data["pedestrian_count"],
+        user_id=user_id
+    )
     
     if random.random() < 0.5:
         generate_and_store_alert(fake_data["location"])
@@ -1114,13 +1233,28 @@ def realtime_traffic():
         return jsonify({"error": "Not logged in"}), 401
     
     fake_data = get_fake_map_data()
-    store_traffic_data(fake_data["location"], fake_data["vehicle_count"], 
-                       fake_data["congestion_level"], fake_data["pedestrian_count"])
+    user_id = None
+    if "user_username" in session:
+        conn = sqlite3.connect("traffic.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM users WHERE username=?", (session["user_username"],))
+        result = cursor.fetchone()
+        user_id = result[0] if result else None
+        conn.close()
+    
+    traffic_id = store_traffic_data(
+        location=fake_data["location"],
+        vehicle_count=fake_data["vehicle_count"],
+        congestion_level=fake_data["congestion_level"],
+        pedestrian_count=fake_data["pedestrian_count"],
+        user_id=user_id
+    )
     
     if random.random() < 0.4:
         accident_data = get_fake_accident_data(fake_data["location"])
-        store_accident_data(accident_data["location"], accident_data["description"], accident_data["severity"])
-        generate_and_store_alert(fake_data["location"])
+        store_accident_data(accident_data["location"], accident_data["description"], 
+                          accident_data["severity"], traffic_id)
+        generate_and_store_alert(fake_data["location"], traffic_id)
     
     conn = sqlite3.connect("traffic.db")
     cursor = conn.cursor()
@@ -1134,21 +1268,21 @@ def realtime_traffic():
     
     response = {
         "traffic": {
-            "location": latest_traffic[1] if latest_traffic else fake_data["location"],
-            "vehicle_count": latest_traffic[2] if latest_traffic else fake_data["vehicle_count"],
-            "congestion_level": latest_traffic[3] if latest_traffic else fake_data["congestion_level"],
-            "pedestrian_count": latest_traffic[4] if latest_traffic else fake_data["pedestrian_count"],
-            "timestamp": latest_traffic[5] if latest_traffic else datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "location": latest_traffic[2] if latest_traffic else fake_data["location"],
+            "vehicle_count": latest_traffic[3] if latest_traffic else fake_data["vehicle_count"],
+            "congestion_level": latest_traffic[4] if latest_traffic else fake_data["congestion_level"],
+            "pedestrian_count": latest_traffic[5] if latest_traffic else fake_data["pedestrian_count"],
+            "timestamp": latest_traffic[6] if latest_traffic else datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         },
         "accident": {
-            "location": latest_accident[1] if latest_accident else None,
-            "description": latest_accident[2] if latest_accident else None,
-            "severity": latest_accident[3] if latest_accident else None
+            "location": latest_accident[2] if latest_accident else None,
+            "description": latest_accident[3] if latest_accident else None,
+            "severity": latest_accident[4] if latest_accident else None
         },
         "alert": {
             "type": latest_alert[0] if latest_alert else None,
-            "location": latest_alert[1] if latest_alert else None,
-            "description": latest_alert[2] if latest_alert else None
+            "location": latest_alert[2] if latest_alert else None,
+            "description": latest_alert[3] if latest_alert else None
         }
     }
     
@@ -1261,18 +1395,26 @@ def get_fake_weather_data(location="Unknown"):
         "humidity": f"{humidity}%"
     }
 
-def store_traffic_data(location, vehicle_count, congestion_level, pedestrian_count):
+def store_traffic_data(location, vehicle_count, congestion_level, pedestrian_count, user_id=None):
     conn = sqlite3.connect("traffic.db")
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO traffic (location, vehicle_count, congestion_level, pedestrian_count) VALUES (?, ?, ?, ?)", 
-                   (location, vehicle_count, congestion_level, pedestrian_count))
+    cursor.execute("""
+        INSERT INTO traffic (user_id, location, vehicle_count, congestion_level, pedestrian_count) 
+        VALUES (?, ?, ?, ?, ?)
+    """, (user_id, location, vehicle_count, congestion_level, pedestrian_count))
     conn.commit()
     conn.close()
 
 @app.route('/traffic_data', methods=['GET'])
 def traffic_data():
     fake_data = get_fake_map_data()
-    store_traffic_data(fake_data["location"], fake_data["vehicle_count"], fake_data["congestion_level"], fake_data["pedestrian_count"])
+    # No user_id as this is a public endpoint, defaults to None
+    store_traffic_data(
+        location=fake_data["location"],
+        vehicle_count=fake_data["vehicle_count"],
+        congestion_level=fake_data["congestion_level"],
+        pedestrian_count=fake_data["pedestrian_count"]
+    )
     return jsonify(fake_data)
 
 @app.route('/weather_data', methods=['GET'])
@@ -1321,19 +1463,45 @@ def chatbot():
 
     # Check if location exists in cuttack_locations
     if location and location.lower() in cuttack_locations:
-        location = cuttack_locations[location.lower()]  # Convert to proper case
+        location = cuttack_locations[location.lower()]
+        user_id = None
+        if "user_username" in session:
+            conn = sqlite3.connect("traffic.db")
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM users WHERE username=?", (session["user_username"],))
+            result = cursor.fetchone()
+            user_id = result[0] if result else None
+            conn.close()
+        
         if "traffic" in user_query:
             fake_data = get_fake_map_data()
             fake_data["location"] = location
-            store_traffic_data(fake_data["location"], fake_data["vehicle_count"], 
-                               fake_data["congestion_level"], fake_data["pedestrian_count"])
+            traffic_id = store_traffic_data(
+                location=fake_data["location"],
+                vehicle_count=fake_data["vehicle_count"],
+                congestion_level=fake_data["congestion_level"],
+                pedestrian_count=fake_data["pedestrian_count"],
+                user_id=user_id
+            )
             response_text = f"Traffic at {location}: {fake_data['congestion_level']} with {fake_data['vehicle_count']} vehicles and {fake_data['pedestrian_count']} pedestrians."
         elif "weather" in user_query:
             weather_data = get_fake_weather_data(location)
             response_text = f"Weather at {location}: {weather_data['weather']}, Temperature: {weather_data['temperature']}, Humidity: {weather_data['humidity']}."
         elif "accident" in user_query:
             accident_data = get_fake_accident_data(location)
-            store_accident_data(accident_data["location"], accident_data["description"], accident_data["severity"])
+            traffic_id = store_traffic_data(
+                location=location,
+                vehicle_count=random.randint(50, 200),
+                congestion_level="High",
+                pedestrian_count=random.randint(30, 100),
+                user_id=user_id
+            )
+            store_accident_data(
+                location=accident_data["location"],
+                description=accident_data["description"],
+                severity=accident_data["severity"],
+                traffic_id=traffic_id
+            )
             response_text = f"Accident at {location}: {accident_data['description']} (Severity: {accident_data['severity']})."
         elif "directions" in user_query:
             response_text = f"To get directions to {location}, visit: https://www.google.com/maps/search/{location}"
